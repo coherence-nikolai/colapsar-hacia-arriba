@@ -82,9 +82,9 @@ function playExhaleCollapse() {
     const t0 = audioCtx.currentTime + i * 0.05;
     g.gain.setValueAtTime(0, t0);
     g.gain.linearRampToValueAtTime(0.055 - i * 0.015, t0 + 0.2);
-    g.gain.exponentialRampToValueAtTime(0.001, t0 + 3.2);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + 5.5); // long natural decay
     o.connect(g); g.connect(audioCtx.destination);
-    o.start(t0); o.stop(t0 + 3.5);
+    o.start(t0); o.stop(t0 + 6.0); // stop well after gain reaches silence
   });
 }
 
@@ -445,12 +445,14 @@ function buildField() {
   STATES[lang].forEach(st => {
     const o = document.createElement('div');
     o.className = 'orb';
+    // Fully reset — no stale glow or collapse state
+    const driftDur = (2.8 + Math.random() * 2.4).toFixed(2) + 's';
+    const driftDelay = (Math.random() * 3).toFixed(2) + 's';
+    const orbpDelay = -(Math.random() * 6).toFixed(2) + 's'; // negative = mid-animation start, no sync
+    o.style.cssText = `--drift-dur:${driftDur}; animation-delay:${orbpDelay};`;
     const len  = st.name.length;
-    const size = len <= 5 ? 'var(--fwm)' : len <= 7 ? 'clamp(22px,5.5vw,30px)' : len <= 9 ? 'clamp(18px,4.6vw,25px)' : 'clamp(15px,3.8vw,20px)';
+    const size = len <= 5 ? 'var(--fwm)' : len <= 7 ? 'clamp(22px,5.5vw,30px)' : len <= 8 ? 'clamp(18px,4.6vw,25px)' : 'clamp(15px,3.8vw,20px)';
     o.innerHTML = '<div class="oname" style="font-size:' + size + '">' + st.name + '</div>';
-    // Randomise drift speed per orb for organic superposition feel
-    o.style.setProperty('--drift-dur', (2.8 + Math.random() * 2.4) + 's');
-    o.style.animationDelay = (Math.random() * 2) + 's';
     const go = () => {
       // Collapse animation: chosen snaps clear, others blur out
       document.querySelectorAll('.orb').forEach(el => { el.classList.remove('collapsing'); el.classList.add('fading'); });
