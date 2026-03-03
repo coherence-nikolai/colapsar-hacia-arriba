@@ -41,6 +41,17 @@ function playDrone() {
     droneNodes.push({ o, g });
   });
 }
+function fadeDrone(out = true, dur = 2.0) {
+  if (!audioCtx || !droneNodes.length) return;
+  droneNodes.forEach(({ g }) => {
+    const now = audioCtx.currentTime;
+    const cur = g.gain.value;
+    g.gain.cancelScheduledValues(now);
+    g.gain.setValueAtTime(cur, now);
+    g.gain.linearRampToValueAtTime(out ? 0 : 0.022, now + dur);
+  });
+  if (out) setTimeout(() => { droneNodes.forEach(({ o }) => { try { o.stop(); } catch(e){} }); droneNodes = []; }, (dur + 0.2) * 1000);
+}
 function playCollapseSound() {
   if (!audioCtx) return;
   const o = audioCtx.createOscillator(), g = audioCtx.createGain();
@@ -59,6 +70,22 @@ function playCollapseSound() {
   bg.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 3.5);
   b.connect(bg); bg.connect(audioCtx.destination);
   b.start(audioCtx.currentTime + 0.75); b.stop(audioCtx.currentTime + 4);
+}
+
+function playExhaleCollapse() {
+  if (!audioCtx) return;
+  // Soft crystallisation chime — higher harmonics, felt more than heard
+  const freqs = [528, 1056, 1584];
+  freqs.forEach((f, i) => {
+    const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+    o.type = 'sine'; o.frequency.value = f;
+    const t0 = audioCtx.currentTime + i * 0.05;
+    g.gain.setValueAtTime(0, t0);
+    g.gain.linearRampToValueAtTime(0.055 - i * 0.015, t0 + 0.2);
+    g.gain.exponentialRampToValueAtTime(0.001, t0 + 3.2);
+    o.connect(g); g.connect(audioCtx.destination);
+    o.start(t0); o.stop(t0 + 3.5);
+  });
 }
 
 // BREATH TIMERS
@@ -497,19 +524,10 @@ function selectState(state) {
   document.getElementById('qtext').textContent      = state.question;
   document.getElementById('retBtn').textContent     = t.retBtn;
 
-  // FIX: closing text — pure JS setTimeout, no CSS animation, no reflow
-  // iOS Safari handles animation-delay on opacity unreliably
-  const closingEl   = document.getElementById('closing');
-  const closingText = t.closings[Math.floor(Math.random() * t.closings.length)];
-  closingEl.classList.remove('fade-in-delayed');
+  // Closing text hidden — word alone is the message after breath
+  const closingEl = document.getElementById('closing');
   closingEl.style.opacity = '0';
-  closingEl.style.transition = 'none';
-  closingEl.textContent = closingText;
-  // After 7.5s, fade in cleanly
-  setTimeout(() => {
-    closingEl.style.transition = 'opacity 1.6s ease';
-    closingEl.style.opacity = '1';
-  }, 7500);
+  closingEl.textContent = '';
 
   collapseStage = 0;
   document.querySelectorAll('.cp-stage').forEach(s => { s.classList.remove('on'); s.style.cssText = ''; });
@@ -527,6 +545,7 @@ function selectState(state) {
   }
   initScene('state_chosen', spChosen);
 
+  fadeDrone(true, 1.5);
   crossFade('s-field', 's-collapse', 1.0, () => {
     gh.style.transition = 'opacity 1.8s ease'; gh.style.opacity = '1';
     setTimeout(() => showCollapseStage(1), 200);
@@ -618,10 +637,12 @@ function startBreath() {
     if (breathCycle >= 3) {
       breathRunning = false;
       bDelay(() => {
-        bend.innerHTML = '<p>' + t.breathEnd(stateName).split('\n').join('<br>') + '</p>';
-        bend.classList.add('on');
+        // No text — word alone, glowing brighter. User taps when ready.
+        btext.style.transition = 'opacity 0.8s ease'; btext.style.opacity = '0';
+        // Brighten the bp dot to pulse as a solo beacon
+        p.className = 'bp crystallised';
         const tapEl = document.getElementById('tapNext');
-        bDelay(() => { tapEl.style.transition = 'opacity 0.8s ease'; tapEl.style.opacity = '1'; }, 1400);
+        bDelay(() => { tapEl.style.transition = 'opacity 0.8s ease'; tapEl.style.opacity = '1'; }, 1800);
       }, 700);
       return;
     }
@@ -631,7 +652,7 @@ function startBreath() {
     showText(t.breathHold, '', 4500);
     bDelay(() => { p.className = 'bp holding'; }, 4500);
     showText(stateName, 'gold', 7300);
-    bDelay(() => { p.className = 'bp exhaling'; ripple.classList.remove('expand'); void ripple.offsetWidth; ripple.classList.add('expand'); }, 7300);
+    bDelay(() => { p.className = 'bp exhaling'; ripple.classList.remove('expand'); void ripple.offsetWidth; ripple.classList.add('expand'); playExhaleCollapse(); }, 7300);
     hideText(11800);
     bDelay(() => { const dot = document.getElementById('bdot' + (breathCycle - 1)); if (dot) dot.classList.add('done'); p.className = 'bp neutral'; }, 11800);
     bDelay(cycle, 12800);
@@ -645,7 +666,7 @@ document.getElementById('retBtn').addEventListener('click', () => {
   const gh = document.getElementById('ghosts');
   gh.style.transition = 'opacity 0.8s ease'; gh.style.opacity = '0';
   setTimeout(() => { gh.innerHTML = ''; gh.style.cssText = ''; }, 900);
-  crossFade('s-collapse', 's-field', 1.0, () => buildField());
+  crossFade('s-collapse', 's-field', 1.0, () => { buildField(); tryDrone(); });
 });
 
 // STILL
@@ -662,7 +683,7 @@ function enterStill() {
   }, 1000);
 }
 document.getElementById('stillBack').addEventListener('click', () => {
-  clearInterval(stillT); crossFade('s-still', 's-field', 1.0, () => buildField());
+  clearInterval(stillT); crossFade('s-still', 's-field', 1.0, () => { buildField(); tryDrone(); });
 });
 
 // BREATH GLYPH
