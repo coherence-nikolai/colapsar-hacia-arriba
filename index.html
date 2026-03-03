@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,59 +9,34 @@
 
 <style>
 :root {
-  --bg-center: #10141b;
-  --bg-edge: #0c0f14;
-  --core-color: rgba(240,204,136,1);
-  --halo-color: rgba(240,204,136,0.25);
+  --bg-center:#10141b;
+  --bg-edge:#0c0f14;
+  --core:rgba(240,204,136,1);
 }
 
-* { box-sizing: border-box; margin:0; padding:0; }
-
-body {
-  height:100vh;
+body{
+  margin:0;
   overflow:hidden;
   font-family:-apple-system,BlinkMacSystemFont,sans-serif;
-  background: radial-gradient(circle at center, var(--bg-center), var(--bg-edge));
-  color:#e6d7b2;
+  background:radial-gradient(circle at center,var(--bg-center),var(--bg-edge));
+  color:#e8d8b5;
 }
 
-#field {
+#field{
   position:absolute;
   inset:0;
 }
 
-.particle {
+.particle{
   position:absolute;
   width:18px;
   height:18px;
   border-radius:50%;
-  background: var(--core-color);
-  box-shadow: 0 0 18px var(--halo-color);
-  transition:
-    filter 1.8s ease,
-    opacity 1.8s ease,
-    transform 1.8s ease,
-    box-shadow 1.8s ease,
-    background 1.8s ease;
+  background:var(--core);
+  will-change:transform,opacity,filter,box-shadow;
 }
 
-.superposition {
-  filter: blur(3px);
-  opacity:0.6;
-}
-
-.collapsed {
-  filter: blur(0px);
-  opacity:1;
-  transform: scale(1.15);
-}
-
-.history {
-  opacity:0.7;
-  box-shadow: 0 0 10px rgba(240,204,136,0.15);
-}
-
-#traits {
+#traits{
   position:absolute;
   bottom:8%;
   width:100%;
@@ -71,12 +46,12 @@ body {
   transition:opacity .6s ease, filter .6s ease;
 }
 
-#traits.visible {
+#traits.visible{
   opacity:1;
   filter:blur(0);
 }
 
-.trait {
+.trait{
   display:inline-block;
   margin:8px 14px;
   cursor:pointer;
@@ -84,49 +59,55 @@ body {
   transition:opacity .4s ease;
 }
 
-.trait.dim {
-  opacity:0.3;
-}
+.trait.dim{ opacity:.3; }
 
-#cue {
+#cue{
   position:absolute;
   top:20%;
   width:100%;
   text-align:center;
   opacity:0;
   transition:opacity .6s ease;
-  white-space: pre-line;
+  white-space:pre-line;
 }
 
-#cue.visible {
-  opacity:1;
-}
+#cue.visible{ opacity:1; }
 
-#explain {
+#explain{
   position:absolute;
   inset:0;
-  background:rgba(12,15,20,0.75);
   display:none;
   align-items:center;
   justify-content:center;
   text-align:center;
   padding:40px;
-  white-space: pre-line;
+  background:rgba(12,15,20,.78);
+  white-space:pre-line;
 }
 
-#explain.visible { display:flex; }
+#explain.visible{ display:flex; }
+
+#lang{
+  position:absolute;
+  top:18px;
+  right:20px;
+  font-size:14px;
+  opacity:.5;
+  cursor:pointer;
+}
+
+#lang:hover{ opacity:.9; }
 
 </style>
 </head>
+
 <body>
 
 <div id="field"></div>
-
 <div id="traits"></div>
-
 <div id="cue"></div>
-
 <div id="explain"></div>
+<div id="lang">EN · ES</div>
 
 <script src="data.js?v=1.0.0"></script>
 <script src="app.js?v=1.0.0"></script>
