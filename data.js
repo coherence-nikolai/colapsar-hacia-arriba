@@ -116,7 +116,7 @@ const STEPS = {
     },
     {
       // FIX: Text now matches what actually happens — one particle snaps into focus
-      big:'One particle is being <b>observed.</b>\nWatch it snap into reality.',
+      big:'One particle is being <b>observed.</b>\nIt has snapped into reality.',
       small:'Everything else fades.\nThe field collapses to a single point.',
       ps:'one'
     },
@@ -127,7 +127,7 @@ const STEPS = {
     },
     {
       big:'Observation does not reveal\nwhat is there.\nIt <b>creates</b> what is there.',
-      ps:'resolving'
+      ps:'flicker'
     },
     {
       big:'This is <b>collapse.</b>',
@@ -142,10 +142,7 @@ const STEPS = {
     {
       big:'The first time you observe courage —\nit flickers.\nThe hundredth time —\nit is simply <b>who you are.</b>',
       note:'<span>Verified:</span> Neuroplasticity confirms repeated observation patterns rebuild neural architecture. Identity forms through accumulated attention.',
-      ps:'stab'
-    },
-    {
-      ps:'stab'
+      ps:'crystallise'
     },
     {
       big:'You are about to run\nthis experiment on yourself.',
@@ -167,7 +164,7 @@ const STEPS = {
     },
     {
       // FIX: Text matches the visual — one particle crystallises
-      big:'Una partícula está siendo <b>observada.</b>\nObserva cómo se cristaliza.',
+      big:'Una partícula está siendo <b>observada.</b>\nYa se ha cristalizado en la realidad.',
       small:'Todo lo demás se desvanece.\nEl campo colapsa a un solo punto.',
       ps:'one'
     },
@@ -178,7 +175,7 @@ const STEPS = {
     },
     {
       big:'La observación no revela\nlo que está ahí.\nLo <b>crea.</b>',
-      ps:'resolving'
+      ps:'flicker'
     },
     {
       big:'Esto es el <b>colapso.</b>',
@@ -193,10 +190,7 @@ const STEPS = {
     {
       big:'La primera vez que observas valentía —\ntitila.\nLa centésima vez —\nsimplemente es <b>quien eres.</b>',
       note:'<span>Verificado:</span> La neuroplasticidad confirma que los patrones de observación repetida reconstruyen la arquitectura neural.',
-      ps:'stab'
-    },
-    {
-      ps:'stab'
+      ps:'crystallise'
     },
     {
       big:'Estás a punto de ejecutar\neste experimento en ti mismo.',

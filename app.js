@@ -118,6 +118,8 @@ class SpParticle {
     const radius = 0.12 + Math.random() * 0.12;
     this.cx = 0.5 + Math.cos(angle) * radius;
     this.cy = 0.14 + Math.abs(Math.sin(angle)) * 0.08;
+    this.targetCx = this.cx;
+    this.targetCy = this.cy;
     this.x = this.cx * cv.width;
     this.y = this.cy * cv.height;
     this.ph  = Math.random() * Math.PI * 2;
@@ -130,17 +132,25 @@ class SpParticle {
     this.clarity += (this.targetClarity - this.clarity) * (this._ce || 0.018);
     this.alpha   += (this.targetAlpha   - this.alpha)   * (this._ae || 0.022);
     this.labelA  += (this.labelTargetA  - this.labelA)  * 0.015;
+    // Smooth glide toward target position
+    this.cx += (this.targetCx - this.cx) * 0.025;
+    this.cy += (this.targetCy - this.cy) * 0.025;
+    // Flicker: rapid random alpha oscillation on chosen particle
+    if (this._flickering) {
+      this.alpha = 0.3 + Math.random() * 0.65;
+      this.clarity = Math.random() * 0.3;
+    }
     this.ph += 0.008 * this.spd;
     const ds = 1 - this.clarity * 0.92;
     this.x = this.cx * cv.width  + Math.cos(this.ph)        * this.driftR * ds;
     this.y = this.cy * cv.height + Math.sin(this.ph * 0.73) * this.driftR * 0.6 * ds;
-    // FIX: strict ceiling — upper 24% only
+    // Strict ceiling — upper 24% only
     const maxY = cv.height * 0.24;
-    if (this.y > maxY) { this.y = maxY; if (this.cy > 0.22) this.cy -= 0.002; }
+    if (this.y > maxY) { this.y = maxY; if (this.targetCy > 0.22) this.targetCy -= 0.002; }
     if (spScene === 'field' && this.i !== spChosen) {
-      this.cx += (Math.random() - 0.5) * 0.0002;
-      this.cy += (Math.random() - 0.5) * 0.0002;
-      if (this.cy > 0.24) this.cy = 0.24;
+      this.targetCx += (Math.random() - 0.5) * 0.0002;
+      this.targetCy += (Math.random() - 0.5) * 0.0002;
+      if (this.targetCy > 0.24) this.targetCy = 0.24;
     }
   }
   draw() {
@@ -206,21 +216,37 @@ function initScene(scene, chosenIdx) {
       case 'collapsed':
         p.targetAlpha   = i === 0 ? 1.0 : 0.04 + Math.random() * 0.04;
         p.targetClarity = i === 0 ? 1.0 : 0; p.labelTargetA = 0;
-        if (i === 0) { p.cx = 0.5; p.cy = 0.14; }
-        else { p.cx = 0.5 + (p.cx - 0.5) * 1.6; p.cy = 0.16 + (p.cy - 0.16) * 1.6; }
+        p._flickering = false;
+        if (i === 0) { p.targetCx = 0.5; p.targetCy = 0.14; }
+        else { p.targetCx = 0.5 + (p.cx - 0.5) * 1.6; p.targetCy = 0.16 + (p.cy - 0.16) * 1.6; }
+        break;
+      case 'flicker':
+        // Chosen particle (first one) flickers; others nearly invisible
+        p._flickering = (i === 0);
+        p.targetAlpha   = i === 0 ? 0.7 : 0.04 + Math.random() * 0.03;
+        p.targetClarity = 0; p.labelTargetA = 0;
+        break;
+      case 'crystallise':
+        // Particle locks in — full clarity, stops flickering
+        p._flickering = false;
+        p.targetAlpha   = i === 0 ? 1.0 : 0.04 + Math.random() * 0.03;
+        p.targetClarity = i === 0 ? 1.0 : 0; p.labelTargetA = 0;
+        if (i === 0) { p.targetCx = 0.5; p.targetCy = 0.14; }
         break;
       case 'field':
+        p._flickering = false;
         p.targetAlpha = 0.30 + Math.random() * 0.25; p.targetClarity = 0; p.labelTargetA = 0;
         const ang = (i / SP_COUNT) * Math.PI * 2 + Math.random() * 0.5;
         const rad = 0.18 + Math.random() * 0.22;
-        p.cx = 0.5 + Math.cos(ang) * rad; p.cy = 0.45 + Math.sin(ang) * rad * 0.65;
+        p.targetCx = 0.5 + Math.cos(ang) * rad; p.targetCy = 0.45 + Math.sin(ang) * rad * 0.65;
         break;
       case 'state_chosen':
         const ic = (i === spChosen);
+        p._flickering = false;
         p.targetAlpha   = ic ? 1.0 : 0.04 + Math.random() * 0.04;
         p.targetClarity = ic ? 1.0 : 0; p.labelTargetA = 0;
-        if (ic) { p.cx = 0.5; p.cy = 0.14; }
-        else { p.cx = 0.5 + (p.cx - 0.5) * 1.6; p.cy = 0.16 + (p.cy - 0.16) * 1.6; }
+        if (ic) { p.targetCx = 0.5; p.targetCy = 0.14; }
+        else { p.targetCx = 0.5 + (p.cx - 0.5) * 1.6; p.targetCy = 0.16 + (p.cy - 0.16) * 1.6; }
         break;
     }
   });
@@ -309,6 +335,7 @@ function runSigil() {
 const STEP_SCENES = {
   'hidden':'hidden','sp':'superposition','one':'one_highlighted',
   'all_labelled':'all_labelled','resolving':'resolving',
+  'flicker':'flicker','crystallise':'crystallise',
   'collapse_demo':'collapsed','stab':'collapsed','done':'collapsed'
 };
 function applyStepScene(ps) { initScene(STEP_SCENES[ps] || 'superposition'); }
@@ -392,9 +419,17 @@ function buildField() {
     const o = document.createElement('div');
     o.className = 'orb';
     const len  = st.name.length;
-    const size = len <= 5 ? 'var(--fwm)' : len <= 7 ? 'clamp(22px,5.5vw,30px)' : len <= 8 ? 'clamp(18px,4.6vw,25px)' : len <= 10 ? 'clamp(14px,3.5vw,18px)' : 'clamp(12px,3vw,15px)';
+    const size = len <= 5 ? 'var(--fwm)' : len <= 7 ? 'clamp(22px,5.5vw,30px)' : len <= 9 ? 'clamp(18px,4.6vw,25px)' : 'clamp(15px,3.8vw,20px)';
     o.innerHTML = '<div class="oname" style="font-size:' + size + '">' + st.name + '</div>';
-    const go = () => selectState(st);
+    // Randomise drift speed per orb for organic superposition feel
+    o.style.setProperty('--drift-dur', (2.8 + Math.random() * 2.4) + 's');
+    o.style.animationDelay = (Math.random() * 2) + 's';
+    const go = () => {
+      // Collapse animation: chosen snaps clear, others blur out
+      document.querySelectorAll('.orb').forEach(el => el.classList.add('fading'));
+      o.classList.remove('fading'); o.classList.add('collapsing');
+      setTimeout(() => selectState(st), 320);
+    };
     o.addEventListener('click', go);
     o.addEventListener('touchend', e => { e.preventDefault(); go(); });
     grid.appendChild(o);
@@ -454,13 +489,23 @@ function selectState(state) {
   document.getElementById('qtext').textContent      = state.question;
   document.getElementById('retBtn').textContent     = t.retBtn;
 
-  // FIX: closing as whole block fade — no per-letter injection, no layout shift
+  // FIX: pre-build closing text with stable layout before transition
   const closingEl   = document.getElementById('closing');
   const closingText = t.closings[Math.floor(Math.random() * t.closings.length)];
-  closingEl.classList.remove('fade-in-delayed');
-  closingEl.style.opacity = '0';
+  closingEl.innerHTML = '';
+  closingEl.style.visibility = 'hidden';
   closingEl.textContent = closingText;
-  requestAnimationFrame(() => { closingEl.classList.add('fade-in-delayed'); });
+  requestAnimationFrame(() => {
+    closingEl.innerHTML = '';
+    closingText.split('').forEach((ch, i) => {
+      const span = document.createElement('span');
+      span.className = 'closing-letter';
+      span.textContent = ch;
+      span.style.animationDelay = (7.5 + i * 0.045) + 's';
+      closingEl.appendChild(span);
+    });
+    closingEl.style.visibility = '';
+  });
 
   collapseStage = 0;
   document.querySelectorAll('.cp-stage').forEach(s => { s.classList.remove('on'); s.style.cssText = ''; });
@@ -497,7 +542,7 @@ function showCollapseStage(n) {
   };
   if (current) {
     current.style.transition = 'opacity 0.7s ease'; current.style.opacity = '0'; current.style.pointerEvents = 'none';
-    setTimeout(() => { current.classList.remove('on'); current.style.cssText = ''; reveal(); }, 700);
+    setTimeout(() => { current.classList.remove('on'); current.style.cssText = 'display:none;'; reveal(); }, 750);
   } else { reveal(); }
 }
 
@@ -542,9 +587,9 @@ function startBreath() {
   const p1 = lang === 'en' ? 'inhale — return to the open field' : 'inhala — regresa al campo abierto';
   const p2 = lang === 'en' ? 'exhale — collapse into ' + stateName : 'exhala — colapsa hacia ' + stateName;
   showText(p1, 'dim', 0);
-  showText(p2, 'dim', 3500);
-  hideText(7200);
-  bDelay(cycle, 8000);
+  showText(p2, 'dim', 5000);
+  hideText(10500);
+  bDelay(cycle, 11500);
 
   function cycle() {
     if (breathCycle >= 3) {
