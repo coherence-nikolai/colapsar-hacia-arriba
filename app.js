@@ -392,7 +392,7 @@ function buildField() {
     const o = document.createElement('div');
     o.className = 'orb';
     const len  = st.name.length;
-    const size = len <= 5 ? 'var(--fwm)' : len <= 7 ? 'clamp(22px,5.5vw,30px)' : len <= 9 ? 'clamp(18px,4.6vw,25px)' : 'clamp(15px,3.8vw,20px)';
+    const size = len <= 5 ? 'var(--fwm)' : len <= 7 ? 'clamp(22px,5.5vw,30px)' : len <= 8 ? 'clamp(18px,4.6vw,25px)' : len <= 10 ? 'clamp(14px,3.5vw,18px)' : 'clamp(12px,3vw,15px)';
     o.innerHTML = '<div class="oname" style="font-size:' + size + '">' + st.name + '</div>';
     const go = () => selectState(st);
     o.addEventListener('click', go);
@@ -454,23 +454,13 @@ function selectState(state) {
   document.getElementById('qtext').textContent      = state.question;
   document.getElementById('retBtn').textContent     = t.retBtn;
 
-  // FIX: pre-build closing text with stable layout before transition
+  // FIX: closing as whole block fade — no per-letter injection, no layout shift
   const closingEl   = document.getElementById('closing');
   const closingText = t.closings[Math.floor(Math.random() * t.closings.length)];
-  closingEl.innerHTML = '';
-  closingEl.style.visibility = 'hidden';
+  closingEl.classList.remove('fade-in-delayed');
+  closingEl.style.opacity = '0';
   closingEl.textContent = closingText;
-  requestAnimationFrame(() => {
-    closingEl.innerHTML = '';
-    closingText.split('').forEach((ch, i) => {
-      const span = document.createElement('span');
-      span.className = 'closing-letter';
-      span.textContent = ch;
-      span.style.animationDelay = (7.5 + i * 0.045) + 's';
-      closingEl.appendChild(span);
-    });
-    closingEl.style.visibility = '';
-  });
+  requestAnimationFrame(() => { closingEl.classList.add('fade-in-delayed'); });
 
   collapseStage = 0;
   document.querySelectorAll('.cp-stage').forEach(s => { s.classList.remove('on'); s.style.cssText = ''; });
@@ -552,9 +542,9 @@ function startBreath() {
   const p1 = lang === 'en' ? 'inhale — return to the open field' : 'inhala — regresa al campo abierto';
   const p2 = lang === 'en' ? 'exhale — collapse into ' + stateName : 'exhala — colapsa hacia ' + stateName;
   showText(p1, 'dim', 0);
-  showText(p2, 'dim', 2400);
-  hideText(4600);
-  bDelay(cycle, 5200);
+  showText(p2, 'dim', 3500);
+  hideText(7200);
+  bDelay(cycle, 8000);
 
   function cycle() {
     if (breathCycle >= 3) {

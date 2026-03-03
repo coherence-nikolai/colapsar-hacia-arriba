@@ -145,8 +145,6 @@ const STEPS = {
       ps:'stab'
     },
     {
-      big:'When you breathe in superposition —\nyou are returning to the open field.\n<b>Everything possible. Nothing fixed.</b>',
-      small:'When you exhale into a state —\nyou are collapsing upward.\nChoosing which version becomes real.',
       ps:'stab'
     },
     {
@@ -198,8 +196,6 @@ const STEPS = {
       ps:'stab'
     },
     {
-      big:'Cuando inhales en superposición —\nvuelves al campo abierto.\n<b>Todo posible. Nada fijo.</b>',
-      small:'Cuando exhalas hacia un estado —\nestás colapsando hacia arriba.\nEligiendo qué versión se vuelve real.',
       ps:'stab'
     },
     {

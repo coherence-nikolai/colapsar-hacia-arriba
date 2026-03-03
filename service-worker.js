@@ -1,4 +1,4 @@
-const CACHE = 'cu-v38';
+const CACHE = 'cu-v39';
 const ASSETS = ['./', './index.html', './app.js', './data.js', './manifest.webmanifest', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', e => {
