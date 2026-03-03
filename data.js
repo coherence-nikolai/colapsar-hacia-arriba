@@ -34,9 +34,9 @@ const TRANSLATIONS = {
       'Every environment you inhabit is an observer. New spaces create new you.',
       'You are never collapsing alone. But you are always the primary observer of yourself.'
     ],
-    breathInhale: 'Inhale into superposition — open, undefined, everything at once',
-    breathExhale: s => `Exhale into ${s} — collapse upward`,
-    breathHold: 'Hold...',
+    breathInhale: 'inhale',
+    breathExhale: s => s,
+    breathHold: 'hold',
     breathCycles: (n,t) => `${n} of ${t}`,
     breathEnd: s => `Your nervous system now knows the direction.\n<strong>${s}</strong> is encoded in you.\nKeep observing.`,
   },
@@ -70,9 +70,9 @@ const TRANSLATIONS = {
       'Cada entorno que habitas es un observador. Nuevos espacios crean nuevo tú.',
       'Nunca colapsas solo. Pero siempre eres el observador principal de ti mismo.'
     ],
-    breathInhale: 'Inhala hacia la superposición — abierto, indefinido, todo a la vez',
-    breathExhale: s => `Exhala hacia ${s} — colapsa hacia arriba`,
-    breathHold: 'Sostén...',
+    breathInhale: 'inhala',
+    breathExhale: s => s,
+    breathHold: 'sostén',
     breathCycles: (n,t) => `${n} de ${t}`,
     breathEnd: s => `Tu sistema nervioso ahora conoce la dirección.\n<strong>${s}</strong> está codificado en ti.\nSigue observando.`,
   }

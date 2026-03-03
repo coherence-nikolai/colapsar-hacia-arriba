@@ -136,7 +136,7 @@ class SpParticle {
     const angle  = (i / SP_COUNT) * Math.PI * 2 + Math.random() * 0.4;
     const radius = 0.12 + Math.random() * 0.12; // fraction of screen
     this.cx = 0.5 + Math.cos(angle) * radius;   // centre x (0..1)
-    this.cy = 0.28 + Math.sin(angle) * radius * 0.5; // upper screen — text lives below
+    this.cy = 0.22 + Math.abs(Math.sin(angle)) * 0.14; // strictly upper screen
     this.x  = this.cx * cv.width;
     this.y  = this.cy * cv.height;
     // Drift
@@ -153,8 +153,8 @@ class SpParticle {
 
   update() {
     // Ease clarity and alpha toward targets
-    this.clarity += (this.targetClarity - this.clarity) * 0.018;
-    this.alpha   += (this.targetAlpha   - this.alpha)   * 0.022;
+    this.clarity += (this.targetClarity - this.clarity) * (this._clarityEase || 0.018);
+    this.alpha   += (this.targetAlpha   - this.alpha)   * (this._alphaEase   || 0.022);
     this.labelA  += (this.labelTargetA  - this.labelA)  * 0.015;
 
     // Drift — collapsed particle barely moves, superposed ones drift freely
@@ -163,10 +163,20 @@ class SpParticle {
     this.x = this.cx * cv.width  + Math.cos(this.ph)        * this.driftR * driftScale;
     this.y = this.cy * cv.height + Math.sin(this.ph * 0.73) * this.driftR * 0.6 * driftScale;
 
-    // During field scene: drift outward slowly
+    // ABSOLUTE ceiling — particles confined to upper 38% of screen, always
+    const maxY = cv.height * 0.38;
+    if (this.y > maxY) {
+      this.y  = maxY;
+      // Push centre upward too so drift doesn't keep fighting ceiling
+      if (this.cy > 0.34) this.cy -= 0.002;
+    }
+
+    // During field scene: drift outward slowly but stay in upper zone
     if (spScene === 'field' && this.i !== spChosen) {
       this.cx += (Math.random() - 0.5) * 0.0002;
       this.cy += (Math.random() - 0.5) * 0.0002;
+      // Keep cy anchored to upper half
+      if (this.cy > 0.38) this.cy = 0.38;
     }
   }
 
@@ -236,7 +246,18 @@ function initScene(scene, chosenIdx) {
   if (chosenIdx !== undefined) spChosen = chosenIdx;
   const states = STATES[lang];
 
+  // one_highlighted uses faster easing so the change is unmissable
+  const clarityEase = scene === 'one_highlighted' ? 0.045 : 0.018;
+  const alphaEase   = scene === 'one_highlighted' ? 0.055 : 0.022;
+
   spParticles.forEach((p, i) => {
+    if (scene === 'one_highlighted') {
+      p._clarityEase = clarityEase;
+      p._alphaEase   = alphaEase;
+    } else {
+      p._clarityEase = 0.018;
+      p._alphaEase   = 0.022;
+    }
     switch(scene) {
 
       case 'hidden':
@@ -253,18 +274,17 @@ function initScene(scene, chosenIdx) {
         break;
 
       case 'one_highlighted':
-        // One particle slightly brighter — "this particle"
-        p.targetAlpha   = i === 0 ? 0.85 : 0.35 + Math.random() * 0.2;
-        p.targetClarity = i === 0 ? 0.15 : 0;
+        // ONE particle blazes — others drop to near invisible. Unmistakable.
+        p.targetAlpha   = i === 0 ? 1.0  : 0.08 + Math.random() * 0.06;
+        p.targetClarity = i === 0 ? 0.75 : 0;
         p.labelTargetA  = 0;
         break;
 
       case 'all_labelled':
-        // All blurry but labels ghost in — "every version of you"
-        p.targetAlpha   = 0.55 + Math.random() * 0.25;
+        // All blurry, slightly more visible — "every version of you" (no labels)
+        p.targetAlpha   = 0.60 + Math.random() * 0.30;
         p.targetClarity = 0.05;
-        p.label         = states[i] ? states[i].name : '';
-        p.labelTargetA  = 0.7;
+        p.labelTargetA  = 0; // labels removed — field screen reveals names
         break;
 
       case 'resolving':
@@ -726,6 +746,8 @@ document.getElementById('s-collapse').addEventListener('click', e => {
 });
 
 // ─── BREATH ───
+// One particle. One word. No layout shifts.
+// inhale → hold → [State] → silence → repeat × 3
 function startBreath() {
   clearAllBreath();
   breathRunning = true;
@@ -734,79 +756,105 @@ function startBreath() {
   const t         = TRANSLATIONS[lang];
   const p         = document.getElementById('bp');
   const ripple    = document.getElementById('bripple');
-  const instr     = document.getElementById('binstr');
-  const sn        = document.getElementById('bsname');
-  const ctr       = document.getElementById('bctr');
+  const btext     = document.getElementById('btext');
   const bend      = document.getElementById('bend');
 
-  p.className      = 'bp neutral';
-  sn.style.opacity = '0';
+  // Clean slate
+  p.className           = 'bp neutral';
+  btext.style.opacity   = '0';
+  btext.textContent     = '';
+  btext.className       = 'btext';
   bend.classList.remove('on');
-  bend.innerHTML   = '';
+  bend.innerHTML        = '';
   ripple.classList.remove('expand');
+  [0,1,2].forEach(i => {
+    const d = document.getElementById('bdot' + i);
+    if (d) d.classList.remove('done');
+  });
 
-  function fadeText(el, newText) {
-    el.style.transition = 'opacity 0.6s ease';
-    el.style.opacity    = '0';
+  // Crossfade single text element — no layout shift ever
+  function showText(text, cls, delayMs) {
     bDelay(() => {
-      el.textContent      = newText;
-      el.style.transition = 'opacity 0.7s ease';
-      el.style.opacity    = '1';
-    }, 700);
+      // Fade out current
+      btext.style.transition = 'opacity 0.5s ease';
+      btext.style.opacity    = '0';
+      bDelay(() => {
+        // Swap content while invisible
+        btext.className     = 'btext' + (cls ? ' ' + cls : '');
+        btext.textContent   = text;
+        // Fade in
+        btext.style.transition = 'opacity 0.7s ease';
+        btext.style.opacity    = '1';
+      }, 520);
+    }, delayMs || 0);
   }
+
+  function hideText(delayMs) {
+    bDelay(() => {
+      btext.style.transition = 'opacity 0.6s ease';
+      btext.style.opacity    = '0';
+    }, delayMs || 0);
+  }
+
+  // Cycle timing (ms from cycle start):
+  //   0ms    — show "inhale", particle blurs out
+  //   4500ms — show "hold",   particle stays blurry
+  //   7300ms — show [State],  particle sharpens, ripple
+  //  11800ms — hide text,     dot fills, brief pause
+  //  12800ms — next cycle
 
   function cycle() {
     if (breathCycle >= 3) {
       breathRunning = false;
-      instr.style.transition = 'opacity 0.6s ease';
-      instr.style.opacity    = '0';
+      // Final text already fading — show end message
       bDelay(() => {
-        sn.style.transition = 'opacity 1s ease';
-        sn.style.opacity    = '1';
-        bend.innerHTML      = `<p>${t.breathEnd(stateName).replace(/\n/g,'<br>')}</p>`;
+        bend.innerHTML = `<p>${t.breathEnd(stateName).replace(/
+/g,'<br>')}</p>`;
         bend.classList.add('on');
-        ctr.textContent     = '';
         const tapEl = document.getElementById('tapNext');
         bDelay(() => {
-          tapEl.style.transition = 'opacity 0.7s ease';
+          tapEl.style.transition = 'opacity 0.8s ease';
           tapEl.style.opacity    = '1';
-        }, 1500);
-      }, 600);
+        }, 1400);
+      }, 700);
       return;
     }
+
     breathCycle++;
-    ctr.textContent = t.breathCycles(breathCycle, 3);
-    fadeText(instr, t.breathInhale);
-    sn.style.transition = 'opacity 0.5s ease';
-    sn.style.opacity    = '0';
-    ripple.classList.remove('expand');
-    void ripple.offsetWidth;
+
+    // INHALE — particle expands and blurs
+    showText(t.breathInhale, '', 0);
     bDelay(() => {
       p.className = 'bp inhaling';
-      // On inhale — briefly show superposition (blurry) for chosen particle
       initScene('superposition');
-      bDelay(() => {
-        p.className = 'bp holding';
-        fadeText(instr, t.breathHold);
-        bDelay(() => {
-          p.className = 'bp exhaling';
-          fadeText(instr, t.breathExhale(stateName));
-          // On exhale — collapse back to chosen state
-          initScene('state_chosen', spChosen);
-          sn.style.transition = 'opacity 1s ease';
-          sn.style.opacity    = '1';
-          ripple.classList.remove('expand');
-          void ripple.offsetWidth;
-          ripple.classList.add('expand');
-          bDelay(() => {
-            sn.style.opacity = '0';
-            p.className      = 'bp neutral';
-            bDelay(cycle, 800);
-          }, 4400);
-        }, 2800);
-      }, 4100);
-    }, 120);
+      ripple.classList.remove('expand');
+      void ripple.offsetWidth;
+    }, 100);
+
+    // HOLD — particle stays expanded
+    showText(t.breathHold, '', 4500);
+    bDelay(() => { p.className = 'bp holding'; }, 4500);
+
+    // EXHALE — state name large gold, particle collapses, ripple
+    showText(stateName, 'gold', 7300);
+    bDelay(() => {
+      p.className = 'bp exhaling';
+      initScene('state_chosen', spChosen);
+      ripple.classList.remove('expand');
+      void ripple.offsetWidth;
+      ripple.classList.add('expand');
+    }, 7300);
+
+    // END OF CYCLE — hide text, fill dot, pause, next
+    hideText(11800);
+    bDelay(() => {
+      const dot = document.getElementById('bdot' + (breathCycle - 1));
+      if (dot) dot.classList.add('done');
+      p.className = 'bp neutral';
+    }, 11800);
+    bDelay(cycle, 12800);
   }
+
   cycle();
 }
 

@@ -306,22 +306,82 @@ html, body {
 .imag-prompt { font-size:var(--fb);color:var(--cream-dim);line-height:1.82;font-style:italic;max-width:330px;font-weight:300; }
 
 /* stage 4 — breath */
-.breath-wrap { display:flex;flex-direction:column;align-items:center;gap:26px;width:100%; }
-.bpwrap { position:relative;display:flex;align-items:center;justify-content:center;width:80px;height:80px; }
-.bp { width:22px;height:22px;border-radius:50%;background:var(--gold-bright);box-shadow:0 0 18px var(--gold),0 0 50px rgba(201,169,110,.28); }
+/* Single centred column. Text zone is fixed height — nothing moves. */
+.breath-wrap {
+  display:flex; flex-direction:column; align-items:center;
+  gap:0; width:100%; position:relative;
+}
+.bpwrap {
+  position:relative; display:flex; align-items:center;
+  justify-content:center; width:120px; height:120px;
+  margin-bottom: 48px;
+}
+.bp {
+  width:22px; height:22px; border-radius:50%;
+  background:var(--gold-bright);
+  box-shadow:0 0 18px var(--gold),0 0 50px rgba(201,169,110,.28);
+}
 .bp.neutral  { transition:transform .8s ease,filter .8s ease,box-shadow .8s ease; }
-.bp.inhaling { transition:transform 4s cubic-bezier(.4,0,.2,1),filter 4s ease,box-shadow 4s ease;transform:scale(2.8);filter:blur(3px);box-shadow:0 0 8px rgba(201,169,110,.2),0 0 50px rgba(201,169,110,.08); }
-.bp.holding  { transition:transform 1.2s ease,filter 1.2s ease;transform:scale(2.8);filter:blur(2px); }
-.bp.exhaling { transition:transform 4s cubic-bezier(.4,0,.2,1),filter 4s ease,box-shadow 4s ease;transform:scale(1);filter:blur(0);box-shadow:0 0 28px var(--gold-bright),0 0 80px rgba(240,204,136,.45),0 0 120px rgba(255,232,176,.2); }
-.bripple { position:absolute;width:22px;height:22px;border-radius:50%;border:1px solid rgba(201,169,110,.4);pointer-events:none;opacity:0; }
+.bp.inhaling {
+  transition:transform 4s cubic-bezier(.4,0,.2,1),filter 4s ease,box-shadow 4s ease;
+  transform:scale(3.2); filter:blur(4px);
+  box-shadow:0 0 8px rgba(201,169,110,.15),0 0 40px rgba(201,169,110,.06);
+}
+.bp.holding  {
+  transition:transform 2s ease,filter 2s ease;
+  transform:scale(3.2); filter:blur(2.5px);
+}
+.bp.exhaling {
+  transition:transform 4s cubic-bezier(.4,0,.2,1),filter 4s ease,box-shadow 4s ease;
+  transform:scale(1); filter:blur(0);
+  box-shadow:0 0 28px var(--gold-bright),0 0 80px rgba(240,204,136,.45),0 0 120px rgba(255,232,176,.2);
+}
+.bripple {
+  position:absolute; width:22px; height:22px; border-radius:50%;
+  border:1px solid rgba(201,169,110,.4); pointer-events:none; opacity:0;
+}
 .bripple.expand { animation:ripOut 4s cubic-bezier(.4,0,.2,1) forwards; }
-@keyframes ripOut{0%{opacity:.5;transform:scale(1)}100%{opacity:0;transform:scale(8)}}
-.binstr { font-size:var(--fb);color:var(--cream);min-height:32px;transition:opacity .5s ease;font-weight:300;text-align:center; }
-.bsname { font-family:'Plus Jakarta Sans',sans-serif;font-size:var(--fb);letter-spacing:.12em;color:var(--gold);opacity:0;transition:opacity 1s ease;font-weight:300; }
-.bctr   { font-size:var(--fl);letter-spacing:.14em;color:var(--gold-dim);font-weight:300; }
-.bend   { font-size:var(--fs);color:var(--cream-dim);line-height:1.7;opacity:0;transition:opacity 1.2s ease;max-width:310px;text-align:center;font-weight:300; }
+@keyframes ripOut{0%{opacity:.5;transform:scale(1)}100%{opacity:0;transform:scale(10)}}
+
+/* Single text slot — fixed height, text crossfades inside it */
+.btext-slot {
+  height: clamp(40px,10vw,56px);
+  display:flex; align-items:center; justify-content:center;
+  width:100%; position:relative;
+}
+/* The one text element that handles everything */
+.btext {
+  position:absolute;
+  font-size:var(--fb); font-weight:300;
+  color:var(--cream); text-align:center;
+  letter-spacing:.04em; line-height:1.4;
+  width:100%; padding:0 24px;
+  transition:opacity 0.7s ease;
+}
+.btext.gold { color:var(--gold); font-size:var(--fw); letter-spacing:.10em; }
+.btext.dim  { color:var(--cream-dim); font-size:var(--fs); line-height:1.7; }
+
+/* Breath cycle dots — 3 tiny dots, fill as cycles complete */
+.bdots {
+  display:flex; gap:10px; margin-top:32px;
+}
+.bdot {
+  width:5px; height:5px; border-radius:50%;
+  background:rgba(201,169,110,.18);
+  transition:background 0.8s ease;
+}
+.bdot.done { background:rgba(201,169,110,.60); }
+
+/* End message — fades in over text slot */
+.bend {
+  position:absolute;
+  font-size:var(--fs); color:var(--cream-dim);
+  line-height:1.7; opacity:0;
+  transition:opacity 1.2s ease;
+  max-width:310px; text-align:center; font-weight:300;
+}
 .bend.on { opacity:1; }
-.bend strong { color:var(--gold);font-weight:400;font-size:1.05em; }
+.bend strong { color:var(--gold); font-weight:400; font-size:1.05em; }
 
 /* stage 5 */
 .obs-note { font-size:var(--fb);color:var(--cream-dim);line-height:1.72;max-width:330px;font-weight:300; }
@@ -407,7 +467,6 @@ html, body {
 <!-- COLLAPSE -->
 <div class="screen" id="s-collapse">
   <div class="cp-stage" id="cs1"><div class="stage-inner">
-    <div class="collapsed-dot"></div>
     <div class="cword" id="cword"></div>
     <div><span class="c-confirm-label" id="cLabel"></span><span class="c-confirm-sub" id="cSub"></span></div>
   </div></div>
@@ -424,10 +483,15 @@ html, body {
         <div class="bp neutral" id="bp"></div>
         <div class="bripple"   id="bripple"></div>
       </div>
-      <div class="binstr" id="binstr"></div>
-      <div class="bsname" id="bsname"></div>
-      <div class="bctr"   id="bctr"></div>
-      <div class="bend"   id="bend"></div>
+      <div class="btext-slot">
+        <div class="btext" id="btext"></div>
+        <div class="bend"  id="bend"></div>
+      </div>
+      <div class="bdots" id="bdots">
+        <div class="bdot" id="bdot0"></div>
+        <div class="bdot" id="bdot1"></div>
+        <div class="bdot" id="bdot2"></div>
+      </div>
     </div>
   </div></div>
   <div class="cp-stage" id="cs5"><div class="stage-inner">
