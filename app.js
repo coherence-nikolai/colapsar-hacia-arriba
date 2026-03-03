@@ -136,7 +136,7 @@ class SpParticle {
     const angle  = (i / SP_COUNT) * Math.PI * 2 + Math.random() * 0.4;
     const radius = 0.12 + Math.random() * 0.12; // fraction of screen
     this.cx = 0.5 + Math.cos(angle) * radius;   // centre x (0..1)
-    this.cy = 0.42 + Math.sin(angle) * radius * 0.7; // centre y
+    this.cy = 0.28 + Math.sin(angle) * radius * 0.5; // upper screen — text lives below
     this.x  = this.cx * cv.width;
     this.y  = this.cy * cv.height;
     // Drift
@@ -153,9 +153,9 @@ class SpParticle {
 
   update() {
     // Ease clarity and alpha toward targets
-    this.clarity += (this.targetClarity - this.clarity) * 0.025;
-    this.alpha   += (this.targetAlpha   - this.alpha)   * 0.030;
-    this.labelA  += (this.labelTargetA  - this.labelA)  * 0.020;
+    this.clarity += (this.targetClarity - this.clarity) * 0.018;
+    this.alpha   += (this.targetAlpha   - this.alpha)   * 0.022;
+    this.labelA  += (this.labelTargetA  - this.labelA)  * 0.015;
 
     // Drift — collapsed particle barely moves, superposed ones drift freely
     this.ph += 0.008 * this.spd;
@@ -282,7 +282,7 @@ function initScene(scene, chosenIdx) {
         // Drift centres move outward for non-chosen
         if (i !== 0) {
           p.cx = 0.5 + (p.cx - 0.5) * 1.4;
-          p.cy = 0.42 + (p.cy - 0.42) * 1.4;
+          p.cy = 0.28 + (p.cy - 0.28) * 1.4;
         }
         break;
 
@@ -306,7 +306,7 @@ function initScene(scene, chosenIdx) {
         p.labelTargetA  = 0;
         if (!isChosen) {
           p.cx = 0.5 + (p.cx - 0.5) * 1.5;
-          p.cy = 0.45 + (p.cy - 0.45) * 1.5;
+          p.cy = 0.32 + (p.cy - 0.32) * 1.5;
         }
         break;
     }
@@ -392,8 +392,8 @@ function runSigil() {
   const sp    = document.getElementById('sigilParticle');
   const fast  = !!visited;
 
-  // Start superposition field faintly in background
-  initScene('superposition');
+  // Particles hidden during arrow — clean dark field for the ceremony
+  initScene('hidden');
 
   if (fast) {
     setTimeout(() => {
@@ -429,6 +429,11 @@ function runSigil() {
       setTimeout(() => { sp.style.transition = ''; }, 2200);
     }, 7800);
     setTimeout(() => { wm.style.opacity = '1'; }, 8600);
+    // Particles fade in gently after arrow dissolves — smooth handoff
+    setTimeout(() => {
+      initScene('superposition');
+    }, 7000);
+
     setTimeout(() => {
       buildInit();
       sp.style.transition = 'opacity 1.4s ease';
@@ -459,10 +464,7 @@ function applyStepScene(ps) {
 
 // ─── INITIATION ───
 function buildInit() {
-  const ip = document.getElementById('initParticle');
-  if (ip) { ip.style.transition = 'opacity 1.2s ease'; ip.classList.add('visible'); }
-
-  // Superposition scene — all particles blurry
+  // Superposition scene — all particles blurry (initParticle removed — sp field is the visual)
   initScene('superposition');
 
   const steps = STEPS[lang];
@@ -855,8 +857,6 @@ function breathGlyph() {
 
 // ─── ENTER FIELD ───
 function enterField() {
-  const ip = document.getElementById('initParticle');
-  if (ip) { ip.style.transition = 'opacity 0.8s ease'; ip.classList.remove('visible'); }
   tryDrone();
   localStorage.setItem('cu_v35', '1');
   visited = true;
