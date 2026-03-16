@@ -47,7 +47,7 @@
 
     /* SETUP */
     #s-setup{gap:20px;padding-top:60px;justify-content:flex-start;overflow-y:auto}
-    .setup-inner{width:100%;max-width:400px;display:flex;flex-direction:column;gap:20px;padding-bottom:40px}
+    .setup-inner{width:100%;max-width:400px;display:flex;flex-direction:column;gap:20px;padding-bottom:100px}
     .setup-name{font-family:var(--sans);font-size:clamp(28px,7vw,38px);font-weight:600;letter-spacing:.06em}
     .setup-pali{font-size:clamp(13px,3.2vw,15px);color:var(--dim);font-style:italic;font-weight:300;margin-top:-12px}
     .setup-instruction{font-size:clamp(15px,3.8vw,17px);font-weight:300;color:var(--dim);line-height:1.85}
@@ -163,6 +163,9 @@
 <div class="screen" id="s-setup">
   <div class="setup-inner" id="setupInner"></div>
 </div>
+
+<!-- FIXED BEGIN BTN - always visible on setup screen -->
+<button id="fixedBeginBtn" onclick="beginPractice()" style="display:none;position:fixed;bottom:max(env(safe-area-inset-bottom),24px);left:24px;right:24px;padding:20px;border-radius:16px;border:1.5px solid rgba(255,255,255,.20);background:rgba(255,255,255,.06);font-family:'Outfit',system-ui,sans-serif;font-size:18px;font-weight:300;color:#e8e4dc;cursor:pointer;z-index:150;-webkit-tap-highlight-color:transparent;letter-spacing:.08em;transition:background .2s,border-color .2s,color .2s">Begin sitting</button>
 
 <!-- PRACTICE -->
 <div class="screen" id="s-practice"></div>
@@ -489,6 +492,9 @@ KASINA_ORDER.forEach(function(key){
 function showScreen(id){
   document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});
   var n=document.getElementById(id);if(n){n.classList.add('active');n.scrollTop=0;}
+  // Hide fixed begin btn unless on setup
+  var fbb=document.getElementById('fixedBeginBtn');
+  if(fbb)fbb.style.display=(id==='s-setup'?'block':'none');
 }
 function goHome(){
   stopPractice();
@@ -568,16 +574,14 @@ function showSetup(key){
   tradDiv.innerHTML='<div class="setup-trad-label">Visuddhimagga instruction</div><div class="setup-trad-text">'+k.tradition+'</div>';
   inner.appendChild(tradDiv);
 
-  // Begin - use setAttribute for maximum iOS compatibility
-  var beginBtn=document.createElement('button');beginBtn.className='begin-btn fade-in';
-  beginBtn.textContent='Begin sitting';
-  beginBtn.style.borderColor='rgba('+k.rgb+',.25)';
-  beginBtn.style.webkitTapHighlightColor='transparent';
-  beginBtn.style.cursor='pointer';
-  beginBtn.setAttribute('type','button');
-  beginBtn.addEventListener('touchend',function(e){e.preventDefault();beginPractice();},{passive:false});
-  beginBtn.addEventListener('click',function(){beginPractice();});
-  inner.appendChild(beginBtn);
+  // Begin button - fixed at bottom, always visible
+  var fixedBegin=document.getElementById('fixedBeginBtn');
+  if(fixedBegin){
+    fixedBegin.style.display='block';
+    fixedBegin.style.borderColor='rgba('+k.rgb+',.40)';
+    fixedBegin.style.color=k.color;
+    fixedBegin.style.background='rgba('+k.rgb+',.08)';
+  }
 
   showScreen('s-setup');
   document.getElementById('topBack').style.display='block';
