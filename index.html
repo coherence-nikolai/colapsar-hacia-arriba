@@ -153,6 +153,7 @@
   <div class="home-title">Kasina</div>
   <div class="home-sub">the ten objects of pure concentration</div>
   <div class="kasina-grid" id="kasinaGrid"></div>
+  <button id="infoBtn" onclick="openInfo()" style="margin-top:24px;background:none;border:1px solid rgba(232,228,220,.12);border-radius:999px;padding:10px 22px;font-family:var(--serif);font-size:13px;letter-spacing:.14em;color:rgba(232,228,220,.35);cursor:pointer;-webkit-tap-highlight-color:transparent">ℹ about kasina practice</button>
 </div>
 
 <!-- SETUP -->
@@ -871,6 +872,34 @@ function endPractice(){
 }
 
 function startAgain(){showSetup(curKey);}
+function openInfo(){document.getElementById('infoPanel').style.transform='translateY(0)';}
+function closeInfo(){document.getElementById('infoPanel').style.transform='translateY(100%)';}
 </script>
+<!-- INFO PANEL -->
+<div id="infoPanel" style="position:fixed;bottom:0;left:0;right:0;max-height:85vh;background:rgba(6,6,10,.94);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid rgba(255,255,255,.08);border-radius:24px 24px 0 0;z-index:500;transform:translateY(100%);transition:transform .4s cubic-bezier(.4,0,.2,1);overflow-y:auto;padding:24px 28px max(env(safe-area-inset-bottom),32px)">
+  <div onclick="closeInfo()" style="width:36px;height:4px;background:rgba(255,255,255,.15);border-radius:99px;margin:0 auto 24px;cursor:pointer"></div>
+  <div style="max-width:480px;margin:0 auto;display:flex;flex-direction:column;gap:22px">
+    <div style="font-family:var(--sans);font-size:clamp(22px,5.5vw,28px);font-weight:600;color:#f5f0e0;letter-spacing:.06em">Kasina Practice</div>
+    <div style="font-size:clamp(14px,3.5vw,16px);font-weight:300;color:rgba(232,228,220,.60);line-height:1.85">Kasina (Pali: kasiṇa) means "whole" or "complete." It refers to a meditation object that is used to fill awareness entirely — a single thing held with such sustained attention that the mind becomes absorbed in it completely.</div>
+    <div>
+      <div style="font-size:11px;letter-spacing:.20em;text-transform:uppercase;color:rgba(232,228,220,.30);font-weight:400;margin-bottom:10px">The Visuddhimagga</div>
+      <div style="font-size:clamp(14px,3.5vw,16px);font-weight:300;color:rgba(232,228,220,.60);line-height:1.85">The Visuddhimagga — Path of Purification — was written by the scholar-monk Buddhaghosa in 5th century Sri Lanka. It is the most comprehensive manual of Theravada meditation ever composed, systematically describing 40 objects of meditation including all ten kasinas in precise detail. Buddhaghosa drew from earlier Pali texts and established commentary traditions that are still followed today.</div>
+    </div>
+    <div>
+      <div style="font-size:11px;letter-spacing:.20em;text-transform:uppercase;color:rgba(232,228,220,.30);font-weight:400;margin-bottom:10px">The ten objects</div>
+      <div style="font-size:clamp(14px,3.5vw,16px);font-weight:300;color:rgba(232,228,220,.60);line-height:1.85">The ten kasinas are earth, water, fire, air, blue, yellow, red, white, space, and light. Each represents a quality of experience that can be used as a concentration object. The meditator gazes at the object until a mental image — the nimitta — arises spontaneously. This acquired sign is then held in the mind without the physical object, deepening into full absorption.</div>
+    </div>
+    <div>
+      <div style="font-size:11px;letter-spacing:.20em;text-transform:uppercase;color:rgba(232,228,220,.30);font-weight:400;margin-bottom:10px">The three signs</div>
+      <div style="font-size:clamp(14px,3.5vw,16px);font-weight:300;color:rgba(232,228,220,.60);line-height:1.85">The Visuddhimagga describes three stages of the sign: the preparatory sign (the actual object), the acquired sign (the mental image that persists when eyes close), and the counterpart sign — a purified, luminous version of the object that arises in deep concentration. The counterpart sign is said to be more brilliant than the original. It is the mind seeing its own clarity reflected back.</div>
+    </div>
+    <div>
+      <div style="font-size:11px;letter-spacing:.20em;text-transform:uppercase;color:rgba(232,228,220,.30);font-weight:400;margin-bottom:10px">How to use this app</div>
+      <div style="font-size:clamp(14px,3.5vw,16px);font-weight:300;color:rgba(232,228,220,.60);line-height:1.85">Choose an object. Read the instruction. Set a timer or sit open-endedly. Fix attention on the visual. When the mind wanders — and it will — tap the return counter and come back. The return is the practice, not a failure. Each return strengthens concentration the way each repetition strengthens a muscle. Over time, the visual will deepen. You may notice the nimitta arising.</div>
+    </div>
+    <div style="font-size:clamp(13px,3.2vw,15px);font-weight:300;color:rgba(232,228,220,.30);line-height:1.85;font-style:italic;padding-top:4px;border-top:1px solid rgba(255,255,255,.06)">"Just as a lamp illuminates an object in a dark room, so concentration illuminates the object of meditation."<br>— Visuddhimagga</div>
+    <button onclick="closeInfo()" style="width:100%;padding:16px;border-radius:14px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.04);font-family:var(--serif);font-size:clamp(15px,3.8vw,17px);font-weight:300;color:rgba(232,228,220,.55);cursor:pointer;-webkit-tap-highlight-color:transparent;margin-top:4px">Close</button>
+  </div>
+</div>
 </body>
 </html>
